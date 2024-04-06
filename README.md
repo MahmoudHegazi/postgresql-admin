@@ -1,6 +1,6 @@
 # postgresql-admin
 
-This library is used to add a GUI endpoint to manage all Postgresql database schemas owned by the given Postgresql user, you can easily add it to any flask application by importing it and instantiating the pgAdmin class by providing your own Flask application class to it, postgresql-admin uses bootstrap4, It is characterized by a responsive design that makes the GUI look good and easy to use on the computer and mobile phone. Also, postgresql-admin may lag when starting because it gets all the data first, so after starting you can perform all your actions and view your data quickly and without time. It also... It uses AJAX and includes helper queries and actions that can make managing your postgresql task a breeze.
+This library is used to add a GUI endpoint to manage all Postgresql database schemas owned by the given Postgresql user, you can easily add it to any flask application by importing it and instantiating the pgAdmin class by providing your own Flask application class to it, postgresql-admin uses bootstrap4, It is characterized by a responsive design that makes the GUI look good and easy to use on the computer and mobile phone. Also, postgresql-admin may lag when starting because it gets all the data first, so after starting you can perform all your actions and view your data quickly and without time. It also... It uses AJAX and includes helper queries and actions that can make managing your postgresql task a breeze (Very easy to setup and use, We provide real User expreince).
 
 ![image](https://github.com/MahmoudHegazi/postgresql-admin/assets/55125302/6ee48190-9e7d-41f4-86a2-e70fc4ff8dee)
 
@@ -35,10 +35,10 @@ pgAdmin(app, user="postgres-user", password="postgresql-pass", host="127.0.0.1",
 ```
 
 ### How to use
-1- install library using command ```pip install postgresql-admin```
-2- import postgresql_admin model at your __init__ file and provide app to pgAdmin class
-3- start your python app ```python __init__.py``` or ```flask run``` or as the way required to start your flask app.
-3- visit endpoint /postgresql-admin
+1. install library using command ```pip install postgresql-admin```
+2. import postgresql_admin model at your __init__ file and provide app to pgAdmin class
+3. start your python app ```python __init__.py``` or ```flask run``` or as the way required to start your flask app.
+4. visit endpoint /postgresql-admin
 
 
 # Author:
