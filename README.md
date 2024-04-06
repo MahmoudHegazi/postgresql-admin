@@ -1,6 +1,6 @@
 # postgresql-admin
 
-This library is used to add a GUI endpoint to manage all Postgresql database schemas owned by the selected Postgresql user, you can easy add it to any flask application by import it and create pgAdmin class instance by providing your Flask app class to it, postgresql-admin is using bootstrap4, and it have responsive desgin that make the GUI look good and easy to use on computer and mobile, also the postgresql-admin may delay when start as it get all data first so after it start you can do all your actions and view your data fast with no time, also it uses AJAX and include help quires and actions can make manage your postgresql task is easy.
+This library is used to add a GUI endpoint to manage all Postgresql database schemas owned by the given Postgresql user, you can easily add it to any flask application by importing it and instantiating the pgAdmin class by providing your own Flask application class to it, postgresql-admin uses bootstrap4, It is characterized by a responsive design that makes the GUI look good and easy to use on the computer and mobile phone. Also, postgresql-admin may lag when starting because it gets all the data first, so after starting you can perform all your actions and view your data quickly and without time. It also... It uses AJAX and includes helper queries and actions that can make managing your postgresql task a breeze.
 
 ![image](https://github.com/MahmoudHegazi/postgresql-admin/assets/55125302/6ee48190-9e7d-41f4-86a2-e70fc4ff8dee)
 
