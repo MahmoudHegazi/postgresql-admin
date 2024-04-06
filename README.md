@@ -7,6 +7,7 @@ This library is used to add a GUI endpoint to manage all Postgresql database sch
 
 
 ### full Flask app code example
+Make sure you replace postgres-user and postgresql-pass with your own postgresql user and password, you can also specify your default shecema or leave it as postgres but in this case make sure you provide the user with privileges to use postgres
 
 ```python
 from flask import Flask, render_template, redirect, url_for, jsonify, flash, request
