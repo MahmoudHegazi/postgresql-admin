@@ -6,7 +6,7 @@ This library is used to add a GUI endpoint to manage all Postgresql database sch
 
 
 
-### full code example
+### full Flask app code example
 
 ```python
 from flask import Flask, render_template, redirect, url_for, jsonify, flash, request
@@ -36,7 +36,7 @@ pgAdmin(app, user="postgres-user", password="postgresql-pass", host="127.0.0.1",
 
 ### How to use
 1. install library using command ```pip install postgresql-admin```
-2. import postgresql_admin model at your __init__ file and provide app to pgAdmin class
+2. from postgresql_admin module import pgAdmin class at your __init__ file and provide app to pgAdmin class, and postgresql credentials
 3. start your python app ```python __init__.py``` or ```flask run``` or as the way required to start your flask app.
 4. visit endpoint /postgresql-admin
 
