@@ -1,0 +1,639 @@
+{% include 'base.html' %}
+{% block body %}
+<div class="row m-0">
+    <!-- aside start -->
+    <div class="col-sm-3 border border-secondary p-0 m-0">
+      <div class="bg-info p-1 text-white">
+        <h5 class="shadow p-1 badge badge-info ml-2">PostgreSQL Admin</h5>
+      </div>
+      <div class="d-flex justify-content-between align-items-center p-1">
+        <button class="btn btn-outline-secondary btn-sm" onclick="moveStepDown();"><i class="fa fa-arrow-left"></i></button>
+        <span id="page_titles" class="badge badge-info fantasy_txt px-2"></span>
+        <button class="btn btn-outline-secondary btn-sm" onclick="moveStepUp();"><i class="fa fa-arrow-right"></i></button>
+      </div>
+      <ul class="nav flex-column w-100 flex-nowrap" style="max-height:700px;overflow:auto;">
+        {% for database in databases %}
+        {% set rowid = 'demo_'~database.index %}
+        <li class="nav-item bg-light border border-secondary title_card hidden_card" style="font-size:0.725rem;">
+          <div class="nav-link border border-secondary c_pointer" href="#" data-toggle="collapse" data-target="#{{rowid}}">
+            <i class="fa fa-plus-square-o"></i>
+            <span>{{database.name}}</span>
+          </div>
+          <div id="{{rowid}}" class="collapse bg-secondary">
+            <div class="pl-1 border border-secondary ml-4 bg-light">
+              <div class="p-1 m-0 pl-4 d-flex justify-content-between align-items-center">
+                <span>Create Table</span>
+                <button class="btn-outline-info rounded shadow mr-1" title="add New Database Table">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+              <ul class="text-left pl-4">
+                {% for table in database.tables %}
+                <li class="border_bot p-1 c_pointer hover1" id="{{table.table_id}}" onclick="showTableView(`{{table.table_id}}`, `{{url_for('get_data')}}`)">
+                  <i class="fa fa-table"></i>
+                  <span>{{table.tablename}}</span>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <!-- aside end -->
+    
+    <!-- main start loading.gif -->
+    <div class="col-sm-9 border border-secondary p-1 m-0">
+      <!-- query and query actions --> 
+      <div class="container-fluid p-2">
+        <div class="border border-secondary shadow rounded p-1 mb-2 d-flex justify-content-between align-items-center">
+          <button class="btn btn-outline-secondary btn-sm" title="Execute Query" data-action="{{url_for('get_query')}}" id="execute_query" onclick="executeQuery(event)">
+            <i class="fa fa-flash"></i>
+          </button>
+          <button id="cancel_query" class="btn btn-outline-primary btn-sm" title="Cancel Query" onclick="displayData()" style="display:none;"><i class="fa fa-close"></i></button>
+        </div>
+        <textarea class="form-control w-100" rows="6" placeholder="Enter SQL Query" id="enter_query"></textarea>
+      </div>
+      <div class="m-2 border border-seoncdary rounded shadow d-flex justify-content-start align-items-center p-2 bg-light">
+        <button class="btn btn-outline-primary btn-sm mr-1" onclick="sqlAction('select')"><i class="fa fa-asterisk"></i> SELECT</button>
+        <button class="btn btn-outline-success btn-sm mr-1" onclick="sqlAction('insert')"><i class="fa fa-plus"></i> Insert</button>
+        <button class="btn btn-outline-warning btn-sm mr-1" onclick="sqlAction('update')"><i class="fa fa-edit"></i> Update</button>
+        <button class="btn btn-outline-danger btn-sm" onclick="sqlAction('delete')"><i class="fa fa-trash"></i> DELETE</button>
+      </div>
+      <div class="d-flex justify-content-between align-items-center p-2">
+        <div class="text-left"><span class="border border-secondary badge badge-light p-2 d-flex justify-content-start align-items-center"><span class="mr-1">Schema:</span><span id="schema_str" class="span_max"></span></span></div>
+        <div class="text-center"><span class="badge badge-secondary p-2 d-flex justify-content-start align-items-center"><span class="mr-1">Table:</span><span id="table_str" class="span_max"></span></span></div>
+        <div class="text-right"><span class="border border-secondary badge badge-light p-2 d-flex justify-content-start align-items-center"><span class="mr-1">Total Rows:</span><span id="total_rows" class="span_max">0</span></span></div>
+      </div>
+      <!-- current table -->
+      <div class="container-fluid p-2" id="display_cont">
+        <div style="max-height:500px !important;overflow: auto;border-bottom:2px solid gray;">
+          <table class="table table-hover table-bordered ctable mb-0" id="current_table">
+            <thead>
+              <tr class="bg-info text-white" id="table_rows"></tr>
+            </thead>
+            <tbody id="table_data"></tbody>
+          </table>
+        </div>
+        <div class="bg-light p-2 bg-light p-2 d-flex align-items-center justify-content-end">
+          <div class="w-25 mr-auto">Page: <span id="current_page">1</span>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" id="prev">
+            <i class="fa fa-arrow-left"></i>
+          </button>
+          <div id="pag_btns"></div>
+          <button class="btn btn-outline-secondary btn-sm" id="next">
+            <i class="fa fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="border border-light shadow p-1">
+          <div class="p-2 border border-secondary rounded shadow mt-3 width_max text-right" style="display:none;" id="accept">
+            <span class="badge badge-secondary text-light">
+              <span class="mr-2">Do you Want Apply Changes ?</span>
+              <button class="btn btn-outline-danger btn-sm" title="Cancel Not sure">
+                <i class="fa fa-close"></i>
+              </button>
+              <button class="btn btn-outline-light btn-sm" title="Apply changes">
+                <i class="fa fa-check"></i>
+              </button>
+            </span>
+          </div>
+        </div>
+        <div class="p-1" id="message_cont" style="max-height:300px;overflow: auto;"></div>
+      </div>
+      <div class="container-fluid p-2" style="display:none;background:#212020fa;" id="loading_cont">
+        {% set imgurl = url_for('static', filename='images/loading.gif') %}
+        <div class="mx-auto loading_contcss" style="background: url('{{imgurl}}');"></div>
+      </div>
+    </div>
+    <!-- end of main -->
+</div>
+<!-- data validators  #212020fa #161515fa -->
+
+
+<script>
+  /*
+  if lib full valids and can use regex https://estuary.dev/postgresql-data-types/#:~:text=PostgreSQL%20provides%20two%20floating%2Dpoint,%2Dbyte%20floating%2Dpoint%20number.
+  ['integer', 'character varying', 'boolean', 'timestamp without time zone', 'uuid', 'date', 'time without time zone', 'character', 'bigint', 'double precision', 'text', 'bytea']
+  */
+  const postgresqlTypes = [
+    'integer', 'character varying', 'boolean', 'timestamp without time zone',
+    'uuid', 'date', 'time without time zone', 'character', 'bigint',
+    'double precision', 'text', 'bytea'
+  ];
+
+  function toggleLoading(start=true){
+    if (start){
+      $("#display_cont").hide();
+      $("#loading_cont").show();
+    } else {
+      $("#loading_cont").hide();
+      $("#display_cont").show();
+    }
+  }
+
+  function addMessage(message, status){
+    $("#message_cont").append(`
+      <div class="alert alert-${status} alert-dismissible fade show">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <span>${message}</span>
+      </div>
+    `);
+  }
+  function getValidateCb(colObj,dataType=null){
+    let cb = null;
+    const typeArg = (!colObj && dataType && typeof(dataType) === 'string') ? dataType : String(colObj['data_type']).trim().toLocaleLowerCase();
+    switch (typeArg) {
+      case 'integer':
+        cb = (value)=>{ return (!isNaN(parseInt(value)) && typeof parseInt(value) === 'number' && isFinite(parseInt(value)) && Math.floor(parseInt(value)) === parseInt(value)) ? true : false};
+        break;
+      case 'double precision':
+        //4-byte
+        cb = (value)=>{ return (!isNaN(parseFloat(value)) && typeof parseFloat(value) === 'number' && isFinite(parseFloat(value)) && (parseFloat(Math.floor(parseFloat(value))) !== parseFloat(value) || String(value).includes('.'))) ? true : false};
+        break;
+      case 'float':
+        //8-byte
+        //text.match(/([A-F\d]+-[A-F\d]+|-[A-F\d]+)+/ig) == text
+        cb = (value)=>{ return (!isNaN(parseFloat(value)) && typeof parseFloat(value) === 'number' && isFinite(parseFloat(value)) && (parseFloat(Math.floor(parseFloat(value))) !== parseFloat(value) || String(value).includes('.'))) ? true : false};
+        break;
+      case 'uuid':
+        cb = (value)=>{ return value.match(/([A-F\d]+-[A-F\d]+|-[A-F\d]+)+/ig) == value ? true : false};
+        break; 
+    }
+    return cb;
+  }
+</script>
+{% if all_tables and all_tables|length > 0 %}
+<!-- all tables script -->
+<script>
+  /* Global Vars */
+  let selectedTable = {};
+  let waitPlease = false;
+  /*/*qdw*dqqd*qd/-*qdw*-ed/*-qeqw*/
+
+  /* Create and insert the Headers and rows */
+  function drawRows(tableId, data, colHeaders=null){
+    let tableHeaders = '';
+    let rowsHTML = '';
+
+
+    let colHeadersData = colHeaders;
+    if (Array.isArray(colHeaders)){
+      colHeaders.forEach((columnTitle)=>{
+          tableHeaders += `<th title='Return from Query'>${columnTitle}</th>`;
+      });
+    } else {
+      if (allTables.hasOwnProperty(tableId)){
+        allTables[tableId].forEach((tableColumn, i)=>{
+
+          // if there order by and selected data
+          let orderByStr = '';
+          if (selectedTable && selectedTable.dataUrl && selectedTable.tableId && selectedTable.page){
+            orderByStr = `
+            <span>
+              <i id="th_asc_${i}" onclick="displayWithOrderBy(event)" data-down="#th_desc_${i}" class="c_pointer asc_arrow fa fa-arrow-up" data-url="${selectedTable.dataUrl}" data-table="${selectedTable.tableId}" data-page="${selectedTable.page}" data-orderby="${String(tableColumn['column_name'])}" data-orderdir="ASC"></i>
+              <i id="th_desc_${i}" onclick="displayWithOrderBy(event)" data-up="#th_asc_${i}" data-url="${selectedTable.dataUrl}" data-table="${selectedTable.tableId}" data-page="${selectedTable.page}" data-orderby="${String(tableColumn['column_name'])}" data-orderdir="DESC" class="c_pointer fa fa-arrow-down desc_arrow" style="display:none;"></i>
+            </span>
+            `;
+          }
+          tableHeaders += `<th title='Type: ${tableColumn['data_type']}, default: ${tableColumn['column_default']}'>
+              <div class="d-flex justify-content-between align-items-center"><span>${String(tableColumn['column_name'])}</span>${orderByStr}</div>
+             </th>`;
+        });
+      }
+    }
+    
+    if (Array.isArray(data)){
+      data.forEach((row)=>{
+        rowsHTML += '<tr>';
+        row.forEach((col)=>{
+          rowsHTML += `
+          <td>${col}</td>`;
+        });
+
+        rowsHTML += '</tr>';
+      });
+    }
+    $("#table_rows").html(tableHeaders);        
+    $("#table_data").html(rowsHTML);
+    return true;
+  }
+
+
+  // one way to make pagination
+  function addPagination(tableId, dataUrl, page, totalBtns){
+    let btnsHTML = '';
+    if (!isNaN(parseInt(totalBtns))){
+      for (let i=0; i<totalBtns; i+=5) {
+        if (page >= i+1 && page <= (i+5)) {
+
+          if (i > 0){
+            $("#prev").unbind('click');
+            
+            $("#prev").on('click', ()=>{
+              showTableView(tableId, dataUrl, i);
+            });
+          }
+
+
+          for (let b=i; b<i+5; b++) {
+            if (b < totalBtns) {
+              let btn = b+1;
+              let current = btn == page ? 'btn-primary' : 'btn-secondary';
+              btnsHTML += `<button class="btn ${current} btn-sm" onclick="showTableView('${tableId}', '${dataUrl}', page='${btn}')">${btn}</button>`;
+            }
+          }
+
+          if (i+6 < totalBtns){
+            $("#next").unbind('click');
+
+            $("#next").on('click', ()=>{
+              showTableView(tableId, dataUrl, i+6);
+            });
+          }
+          break;
+        }
+      }
+    }
+    $("#pag_btns").html(btnsHTML);
+    return true;
+  }
+
+  function displayData(){
+    if (typeof(selectedTable) === 'object' && selectedTable.hasOwnProperty('data') && selectedTable.hasOwnProperty('dataUrl') && selectedTable.hasOwnProperty('page') && selectedTable.hasOwnProperty('schema') && selectedTable.hasOwnProperty('tableName') && selectedTable.hasOwnProperty('total') && selectedTable.hasOwnProperty('tableId')){
+
+      $("#cancel_query").hide();
+      $("#current_page").text(selectedTable.page);
+      $("#schema_str").text(selectedTable.schema);
+      $("#table_str").text(selectedTable.tableName);
+      $("#total_rows").text(selectedTable.total);
+      $("#execute_query").attr('data-schema', selectedTable.schema);
+      $("#execute_query").attr('data-table', selectedTable.tableName);
+      $("#execute_query").attr('data-id', selectedTable.tableId);
+
+      drawRows(selectedTable.tableId, selectedTable.data);
+      addPagination(selectedTable.tableId, selectedTable.dataUrl, selectedTable.page, selectedTable.total);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async function postData(url='', data={}){
+    try {
+      const rawResponse = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+      });
+      return await rawResponse.json();
+    } catch (error) {
+      console.log('error from postData', error);
+      return null;
+    }
+  }
+  const allTables = JSON.parse({{all_tables|tojson|safe}});
+  const tablesData = JSON.parse({{tables_data|tojson|safe}});
+  
+  
+  
+  async function showTableView(tableId, dataUrl, page=1, orderBy=null, orderDir=null){
+    try {
+        if (waitPlease === true){return false;}
+        waitPlease = true;
+        toggleLoading(waitPlease);
+
+        let validData = (tableId && allTables.hasOwnProperty(tableId) && dataUrl) ? true : false;
+        validData = validData && tablesData.hasOwnProperty(tableId) && tablesData[tableId].hasOwnProperty('table') && tablesData[tableId].hasOwnProperty('schema') ? true : false;
+
+        
+        if (validData && tablesData[tableId]['schema'] && tablesData[tableId]['table']) {
+          const schema = tablesData[tableId]['schema'];
+          const tableName = tablesData[tableId]['table'];
+
+          const tableRows = await postData(dataUrl, {table_name: tableName, schema: schema, page: page, order_by: orderBy, order_dir: orderDir});
+
+          if (tableRows && tableRows.code == 200 && Array.isArray(tableRows.data) && !isNaN(parseInt(tableRows.btns)) && !isNaN(parseInt(tableRows.total))) {
+            
+            selectedTable = {tableId, dataUrl, page, tableName, schema, orderBy, orderDir, total: tableRows.total, data: tableRows.data};
+            displayData();
+
+          } else {
+            selectedTable = {};
+            $("#table_data").html('');
+            $("#table_rows").html('');
+            $("#pag_btns").html('');        
+            $("#schema_str").text('');
+            $("#table_str").text('');
+            $("#total_rows").text('0');
+            $("#current_page").text('1');
+            $("#prev").unbind('click');
+            $("#next").unbind('click');
+            $("#execute_query").removeAttr('data-schema');
+            console.log('can not display data');
+            waitPlease = false;
+            return false;
+          }
+          
+        }
+        waitPlease = false;
+        toggleLoading(waitPlease);
+    } catch (error) {
+      console.log('error from showTableView', error);
+      addMessage('Table can not loaded.', 'danger');
+      waitPlease = false;
+    }
+  }
+
+  async function executeQuery(e){
+    try {
+      if (waitPlease === true){return false;}
+
+      waitPlease = true;
+      toggleLoading(waitPlease);
+      if (
+        e && $(e.currentTarget).length && $(e.currentTarget).attr('data-schema') &&
+        $(e.currentTarget).attr('data-table') && $(e.currentTarget).attr('data-id') &&
+        allTables.hasOwnProperty($(e.currentTarget).attr('data-id')) && $(e.currentTarget).attr('data-action') &&
+        $("#enter_query").length && $("#enter_query").val()
+        ) {
+
+        const tableId = $(e.currentTarget).attr('data-id');
+        $("#pag_btns").html('');
+        $("#total_rows").text('0');
+        $("#table_str").text('');
+        $("#prev").unbind('click');
+        $("#next").unbind('click');
+
+        const res = await postData($(e.currentTarget).attr('data-action'), {
+          schema: $(e.currentTarget).attr('data-schema'),
+          table: $(e.currentTarget).attr('data-table'),
+          query: $("#enter_query").val()
+        });
+
+        if (res && res.code == 200 && Array.isArray(res.data) && Array.isArray(res.cols) && !isNaN(parseInt(res.total))){
+          // cols head
+          $("#total_rows").text(res.total);
+          drawRows(tableId, res.data, res.cols);
+          if (res.message){
+            addMessage(res.message, 'info');
+          }
+        } else {
+          $("#table_data").html('');
+          let errorMsg = (res && res.message) ? res.message : 'Unknown error unable to execute your query';
+          addMessage(errorMsg, 'danger');
+        }
+
+      } else {
+        console.log("unable to execute query");
+        if (!$(e.currentTarget).attr('data-schema')){
+          addMessage('Please select schema first!', 'info');
+        } else if (!$("#enter_query").val()) {
+          addMessage('Please write query first!', 'info');
+        } else {
+          addMessage('Can not Execute your query!', 'info');
+        }
+      }
+      
+      $("#cancel_query").show();
+      waitPlease = false;
+      toggleLoading(waitPlease);
+    } catch (error) {
+      addMessage('Unknown error unable to execute query.', 'danger');
+      console.log('error from executeQuery', error);
+      waitPlease = false;
+      toggleLoading(waitPlease);
+    }
+  }
+
+  // function for internal pagenation
+  const titlesData = [];
+  let currentPackage = -1;
+  const maxItems = 15;
+  function titlesPagination(){
+    if ($('.hidden_card').length > 0 && currentPackage === -1){
+      for (let i=0; i<$('.hidden_card').length; i+=maxItems) {
+        const package = [];
+        for (let c=i; c<(i+maxItems); c++) {
+          if (c < $('.hidden_card').length){
+            package.push($('.hidden_card').eq(c));
+          }
+        }
+        titlesData.push(package);
+      }
+      moveStepUp();
+    }
+  }
+  
+  function moveStepUp(){
+    if (titlesData.length > 0) {
+      currentPackage += 1;
+      $(".title_card").addClass('hidden_card');
+
+      let currentPackageArr = [];
+      if (titlesData.length > currentPackage) {
+        currentPackageArr = titlesData[currentPackage];
+      } else {
+        currentPackageArr = titlesData[titlesData.length-1];
+        currentPackage = titlesData.length-1;
+      }
+      currentPackageArr.forEach((cardElm)=>{
+        $(cardElm).removeClass('hidden_card');
+      });
+      $("#page_titles").text(currentPackage+1);
+    }
+  }
+  function moveStepDown(){
+    if (titlesData.length > 0) {
+      currentPackage -= 1;
+      $(".title_card").addClass('hidden_card');
+
+      let currentPackageArr = [];
+      if (currentPackage >= 0) {
+        currentPackageArr = titlesData[currentPackage];
+      } else {
+        currentPackageArr = titlesData[0];
+        currentPackage = 0;
+      }
+      currentPackageArr.forEach((cardElm)=>{
+        $(cardElm).removeClass('hidden_card');
+      });
+      $("#page_titles").text(currentPackage+1);
+    }
+  }
+  titlesPagination();
+
+  function selectAction(tableName, queryTextArea){
+    if (!tableName.text().trim()){
+        addMessage(`Please select table first!`, 'danger');
+        return false;
+    }
+    const sqlStatment = `SELECT * FROM ${tableName.text().trim()};`;
+    queryTextArea.val(sqlStatment);
+    return sqlStatment;
+  }
+  function insertAction(totalRows, executer, tableSchema, tableName, queryTextArea){
+      const tableId = executer.attr('data-id');
+      // handle error and notify developer how fix
+      if (!tableSchema.text() || !tableName.text() || !tableId || !allTables.hasOwnProperty(tableId)){
+        addMessage(`Please select schema and table first!`, 'danger');
+        return false;
+      }
+      // create sql command for insert (REAL UX, phpmyadmin)
+      const tableCols = allTables[tableId];
+      const colsStringArr = [];
+      const valuesStringArr = [];
+      for (let c=0; c<tableCols.length; c++) {
+        const colObj = tableCols[c];
+
+
+        if (colObj && colObj.column_name) {
+          // if oop can use type %s %i etc
+          colsStringArr.push(colObj.column_name);
+
+          let defaultVal = ''
+          // handle default null dates
+          if (colObj.is_nullable.toLocaleLowerCase() == "yes") {
+              // column accept null
+              defaultVal = 'null';
+          } else {
+              // default value based on type
+              switch (colObj.data_type) {
+                case "integer":
+                  defaultVal = '0';
+                  break;
+                case "numeric":
+                  defaultVal = '0.00';
+                  break;
+                case "real":
+                  defaultVal = '0.00';
+                  break
+                case "date":
+                  defaultVal = 'CURRENT_TIMESTAMP';
+                  break;
+                default:
+                  defaultVal = "''";
+                  break;
+              }
+
+              // handle Auto incercemnt
+              const isAutoIncerment = !isNaN(parseInt(totalRows.text().trim())) && colObj.data_type == 'integer' && colObj.column_default && 
+                  colObj.column_default.startsWith("nextval('") && colObj.column_default.endsWith("'::regclass)");
+              if (isAutoIncerment) {
+                  // ID auto incersemnt
+                  defaultVal = String(Math.max(parseInt(totalRows.text().trim()), 0)+1);
+              }
+          }
+          // add default AI logical guessed val
+          valuesStringArr.push(defaultVal);
+        } else {
+          // if found column empty or invalid data stop function and display error
+          addMessage(`One or more columns are missing unable to generate insert statment for selected table.`, 'danger');
+          return false;
+        }
+      }
+      let queryinsertCommand = `Insert Into ${tableName.text().trim()} (${colsStringArr.join(', ')}) VALUES (${valuesStringArr.join(',')});`;
+      queryTextArea.val(queryinsertCommand);
+      console.log('insert action', tableSchema, tableName, queryinsertCommand);
+      return queryinsertCommand;
+  }
+  function updateAction(executer, tableName, queryTextArea){
+    const tableId = executer.attr('data-id');
+    if (!tableName.text().trim() || !tableId || !allTables.hasOwnProperty(tableId)){
+        addMessage(`Please select table first!`, 'danger');
+        return false;
+    }
+
+    // check if id col better help in guessing
+    const isId = allTables[tableId].find((obj)=>{return (typeof(obj) === 'object' && obj.column_name && obj.column_name.toLocaleLowerCase() == 'id') ? true : false;});
+    const where = isId ? ` WHERE ${isId.column_name} = ?;` : ';';
+
+    const sqlStatment = `UPDATE ${tableName.text().trim()} SET column_name=value${where}`;
+    queryTextArea.val(sqlStatment);
+    return sqlStatment;
+  }
+
+  function delectAction(executer, tableName, queryTextArea){
+    const tableId = executer.attr('data-id');
+    if (!tableName.text().trim() || !tableId || !allTables.hasOwnProperty(tableId)){
+        addMessage(`Please select table first!`, 'danger');
+        return false;
+    }
+    // check if id col and insert helper where so avoid no id delete error or info better add id or primary key in delete
+    const isId = allTables[tableId].find((obj)=>{return (typeof(obj) === 'object' && obj.column_name && obj.column_name.toLocaleLowerCase() == 'id') ? true : false;});
+    const where = isId ? ` WHERE ${isId.column_name} > ?;` : ';';
+
+    const sqlStatment = `DELETE FROM ${tableName.text().trim()}`+where;
+    queryTextArea.val(sqlStatment);
+    return sqlStatment;
+  }
+
+  function sqlAction(action) {
+    let result = false;
+    const tableSchema = $("#schema_str");
+    const tableName = $("#table_str");
+    const executer = $("#execute_query");
+    const queryTextArea = $("#enter_query");
+    const totalRows = $("#total_rows");
+    if (totalRows.length && executer.length && tableSchema.length && tableName.length && action && typeof(action) === 'string'){
+      switch (action) {
+        case 'insert':
+          result = insertAction(totalRows, executer, tableSchema, tableName, queryTextArea);
+          break;
+        case 'select':
+          result = selectAction(tableName, queryTextArea);
+          break;
+        case 'delete':
+          result = delectAction(executer, tableName, queryTextArea);
+          break;
+        case 'update':
+          result = updateAction(executer, tableName, queryTextArea);
+          break;
+        default:
+          console.log('unknown action sqlAction');
+          break;
+      }
+      return result;
+    }
+  }
+
+  async function displayWithOrderBy(e){
+    if (e && $(e.currentTarget).length && ($(e.currentTarget).attr('data-down')||$(e.currentTarget).attr('data-up')) &&
+        ($($(e.currentTarget).attr('data-down')).length||$($(e.currentTarget).attr('data-up')).length) &&
+        $(e.currentTarget).attr('data-table') && $(e.currentTarget).attr('data-page') && $(e.currentTarget).attr('data-orderby') &&
+        $(e.currentTarget).attr('data-orderdir') && $(e.currentTarget).attr('data-url')
+      ) {
+
+        
+
+        const tableId = $(e.currentTarget).attr('data-table');
+        const dataUrl = $(e.currentTarget).attr('data-url');
+        const page = $(e.currentTarget).attr('data-page');
+        const orderBy = $(e.currentTarget).attr('data-orderby');
+        const orderDir = $(e.currentTarget).attr('data-orderdir');
+        const isUp = $(e.currentTarget).attr('data-down') ? true : false;
+
+        await showTableView(tableId, dataUrl, page, orderBy, orderDir);
+        
+        if (isUp){
+          $('.asc_arrow').hide();
+          $('.desc_arrow').show('fast');
+        } else {
+          $('.desc_arrow').hide();
+          $('.asc_arrow').show('fast');
+        }
+        
+        
+    } else {
+      addMessage('Can not apply order action!', 'danger');
+      return false;
+    }
+  }
+
+</script>
+{% endif %}
+{% endblock body %}

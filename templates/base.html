@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {% if self.title %}
+  <title>{{self.title()}}</title>
+  <meta name="title" content="{{self.title()}}" />
+  <meta property="og:title" content="{{self.title()}}" />
+  {% else %}
+  <title>Postgresql MyAdmin</title>
+  <meta name="title" content="Inventory" />
+  <meta property="og:title" content="Inventory" />
+  {% endif %}
+  
+  {% if self.page_description %}
+  <meta name="description" content="{{self.page_description()}}" />
+  <meta property="og:description" content="{{self.page_description()}}" />
+  {% endif %}
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="{{url_for('static', filename='css/styles.css')}}">
+  <link rel="stylesheet" href="{{url_for('static', filename='libs/bootstrap-46/css/bootstrap.min.css')}}">
+
+  <script src="{{url_for('static', filename='libs/jquery-3_6_3/jquery-3.6.3.js')}}"></script>
+  <script src="{{url_for('static', filename='libs/propper-1_16_1/popper.min.js')}}"></script>
+  <script src="{{url_for('static', filename='libs/bootstrap-46/js/bootstrap.bundle.min.js')}}"></script>
+
+  <script src="{{url_for('static', filename='js/app.js')}}"></script>
+
+  {% if self.head_data %}
+    {% block head_data %}{% endblock %}
+  {% endif %}
+  
+</head>
+<body>
+
+<div class="container-fluid">
+  <nav class="navbar navbar-expand-md bg-light navbar-light shadow">
+    {% if current_user is defined and current_user.is_authenticated %}
+    <a class="navbar-brand" href="{{url_for('index')}}"><img src="{{url_for('static', filename='assets/images/'~current_user.image|safe)}}"  style="max-height: 50px;"/></a>
+    {% endif %}
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="w-100 navbar-nav">
+        <li class="ml-2 nav-item bg-light border">
+          <a class="nav-link" href="{{url_for('index')}}">Home</a>
+        </li>
+      </ul>
+    </div>
+  </nav>  
+</div>
+<div>
+{% block body %}{% endblock body %}
+{% if self.page_scripts %}
+{% block page_scripts %}{% endblock page_scripts %}
+{% endif %}
+</body>
+</html>

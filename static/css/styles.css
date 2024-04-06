@@ -1,0 +1,51 @@
+.border_bot {
+    border-bottom: 1px solid lightgray !important;
+  }
+  .c_pointer {
+    cursor: pointer !important;
+  }
+  
+  .hover1:hover {
+     background: gainsboro !important;
+  }
+  
+  .ctable td, th {
+    padding: 3px !important;
+    font-size: 0.825rem;
+    max-width: 10px;
+    overflow: hidden;
+  }
+  .ctable input {
+    max-width: 100% !important;
+  }
+  .span_max {
+    white-space: normal;
+    max-width: 100px !important;
+    word-wrap: break-word;
+    display: inline-block;
+  }
+  .loading_contcss {
+    min-height: 450px !important;
+    background-repeat: no-repeat !important;
+    background-size: contain !important;
+    background-position: center !important;
+    max-width: 500px !important;
+    
+  }
+  #current_table tr td {
+    min-width: 80px !important;
+  }
+  .hidden_card {
+    display: none;
+  }
+  .fantasy_txt {
+    font-family: fantasy !important;
+    text-shadow: 2px 2px 4px #000000 !important;
+  }
+  .mh_500 {
+    max-height: 500px !important;
+    overflow: auto !important;
+  }
+  .c_pointer {
+    cursor: pointer !important;
+  }
