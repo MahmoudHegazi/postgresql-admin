@@ -15,7 +15,7 @@ from postgresql_admin import pgAdmin
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # add postgresql admin to your apps is easy as hello wiorld
-pg_admin = pgAdmin(app)
+pg_admin = pgAdmin(app, user="postgres-user", password="postgresql-pass", host="127.0.0.1", port="5432", default_shecema='postgres')
 
 app.config['SECRET_KEY'] = 'your-app-secert'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
