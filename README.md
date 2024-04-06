@@ -31,7 +31,7 @@ if __name__ == '__main__':
 Please note
 ```python
 from postgresql_admin import pgAdmin
-pgAdmin(app)
+pgAdmin(app, user="postgres-user", password="postgresql-pass", host="127.0.0.1", port="5432", default_shecema='postgres')
 ```
 
 ### How to use
